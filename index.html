@@ -1,0 +1,388 @@
+<!-- ... cabeçalho e começo do seu HTML já estão corretos -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sistema Chamada SENAI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #f8f8f8;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header, footer {
+      background-color: #c00;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    main {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #c00;
+      border-bottom: 2px solid #c00;
+      padding-bottom: 5px;
+    }
+    section {
+      margin-bottom: 40px;
+      display: none;
+    }
+    section.active {
+      display: block;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }  
+    input, select, button {
+      padding: 10px;
+      margin-top: 5px;
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 1em;
+    }
+    button {
+      background-color: #c00;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    button:hover {
+      background-color: #a00;
+    }
+    #qrcode canvas {
+      margin: 20px auto;
+      display: block;
+    }
+    .hidden {
+      display: none;
+    }
+    .aluno-info, .presenca-lista {
+      margin-top: 20px;
+      font-size: 0.95em;
+      background: #f0f0f0;
+      padding: 15px;
+      border-left: 5px solid #c00;
+      border-radius: 5px;
+    }
+    #downloadLink {
+      display: inline-block;
+      margin-top: 15px;
+      background-color: #c00;
+      color: white;
+      padding: 10px 15px;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    #downloadLink:hover {
+      background-color: #a00;
+    }
+    #paginaInicial {
+      text-align: center;
+      display: block;
+    }
+    #paginaInicial button {
+      width: 200px;
+      font-size: 1.2em;
+      margin: 15px;
+      padding: 15px;
+      cursor: pointer;
+      background-color: #c00;
+      color: white;
+      border: none;
+      border-radius: 8px;
+    }
+    #paginaInicial button:hover {
+      background-color: #a00;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/8/8c/SENAI_S%C3%A3o_Paulo_logo.png" alt="SENAI" style="max-width:240px; margin-bottom:10px;">
+    <h1>Sistema de Chamada Escolar - SENAI Mário Henrique Simonsen</h1>
+    <p>Piracicaba - SP | (19) 3412-3500</p>
+  </header>
+  <main>
+    <section id="paginaInicial" class="active">
+      <h2>Bem-vindo ao Sistema de Chamada Escolar</h2>
+      <p>Você é:</p>
+      <button id="btnAluno">Aluno</button>
+      <button id="btnProfessor">Professor</button>
+    </section>
+
+    <section id="areaAluno">
+      <h2>Cadastro de Aluno</h2>
+      <form id="formCadastro">
+        <label>Nome completo:<input type="text" id="nome" required /></label>
+        <label>CPF:<input type="text" id="cpf" required /></label>
+        <label>Turma:
+          <select id="turma" required>
+            <option value="">Selecione a turma</option>
+            <option value="1">Turma 1</option>
+            <option value="2">Turma 2</option>
+            <option value="3">Turma 3</option>
+            <option value="4">Turma 4</option>
+            <option value="5">Turma 5</option>
+          </select>
+        </label>
+        <label>Curso:<input type="text" id="curso" required /></label>
+        <label>Turno:<input type="text" id="turno" required /></label>
+        <button type="submit">Gerar QR Code</button>
+        <button type="button" onclick="abrirRecuperarQRCode()">Já tenho cadastro</button>
+        <div id="recuperarQRCode" class="hidden">
+  <label>Digite seu CPF para recuperar QR Code:</label>
+  <input type="text" id="cpfBusca" placeholder="Digite seu CPF" />
+  <button type="button" onclick="buscarQRCodePorCPF()">Buscar</button>
+</div>
+
+      </form>
+      <div id="qrcode" class="hidden"></div>
+      <a id="downloadLink" download="qrcode.png" style="display:none;">Baixar QR Code</a>
+      <div id="reader" style="width:300px;"></div>
+      <div id="alunoDetectado" class="aluno-info hidden"></div>
+    </section>
+
+    <section id="areaProfessor">
+      <h2>Painel do Professor</h2>
+      <label>Login: <input type="text" id="login" /></label>
+      <label>Senha: <input type="password" id="senha" /></label>
+      <button id="btnLogin">Entrar</button>
+      <div id="painel" class="hidden">
+        <label>Turma:
+          <select id="filtroTurma">
+            <option value="">Todas</option>
+            <option value="1">Turma 1</option>
+            <option value="2">Turma 2</option>
+            <option value="3">Turma 3</option>
+            <!-- CONTINUAÇÃO do select de turma -->
+            <option value="4">Turma 4</option>
+            <option value="5">Turma 5</option>
+          </select>
+        </label>
+        <div id="listaPresencas" class="presenca-lista"></div>
+      </div>
+      <button onclick="voltarInicio()">Voltar</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>Está tendo problemas? Nos contate aqui! (19) 3412-3500</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script>
+    // Controle de exibição
+    const paginaInicial = document.getElementById('paginaInicial');
+    const areaAluno = document.getElementById('areaAluno');
+    const areaProfessor = document.getElementById('areaProfessor');
+    const painel = document.getElementById('painel');
+    const listaPresencas = document.getElementById('listaPresencas');
+    const filtroTurma = document.getElementById('filtroTurma');
+    const alunoDetectado = document.getElementById('alunoDetectado');
+    const formCadastro = document.getElementById('formCadastro');
+    const qrcodeDiv = document.getElementById('qrcode');
+    const downloadLink = document.getElementById('downloadLink');
+
+    let alunos = JSON.parse(localStorage.getItem('alunos') || '[]');
+    let presencas = JSON.parse(localStorage.getItem('presencas') || '[]');
+    let html5QrCode = null;
+
+    document.getElementById('btnAluno').addEventListener('click', () => {
+      paginaInicial.classList.remove('active');
+      paginaInicial.classList.add('hidden');
+      areaAluno.classList.add('active');
+      iniciarLeituraQRCode();
+    });
+
+    document.getElementById('btnProfessor').addEventListener('click', () => {
+      paginaInicial.classList.remove('active');
+      paginaInicial.classList.add('hidden');
+      areaProfessor.classList.add('active');
+    });
+
+    function voltarInicio() {
+      pararLeituraQRCode();
+      areaAluno.classList.remove('active');
+      areaProfessor.classList.remove('active');
+      painel.classList.add('hidden');
+      paginaInicial.classList.add('active');
+      paginaInicial.classList.remove('hidden');
+    }
+
+    formCadastro.addEventListener('submit', e => {
+      e.preventDefault();
+      const cpf = document.getElementById('cpf').value.trim();
+      const nome = document.getElementById('nome').value.trim();
+      const turma = document.getElementById('turma').value;
+      const curso = document.getElementById('curso').value.trim();
+      const turno = document.getElementById('turno').value.trim();
+
+      if (!turma) {
+        alert('Selecione uma turma!');
+        return;
+      }
+
+      const novoId = alunos.length > 0 ? alunos[alunos.length - 1].id + 1 : 1;
+      const aluno = { id: novoId, cpf, nome, turma, curso, turno };
+      alunos.push(aluno);
+      localStorage.setItem('alunos', JSON.stringify(alunos));
+
+      const dadosQr = JSON.stringify(aluno);
+      const qr = new QRious({ value: dadosQr, size: 200 });
+
+      qrcodeDiv.innerHTML = '';
+      qrcodeDiv.appendChild(qr.image);
+      qrcodeDiv.classList.remove('hidden');
+
+      downloadLink.href = qr.toDataURL('image/png');
+      downloadLink.style.display = 'inline-block';
+    });
+
+    function registrarPresenca(dadosJson) {
+      try {
+        const dados = JSON.parse(dadosJson);
+        const aluno = alunos.find(a => a.id === dados.id);
+
+        if (!aluno) {
+          alert('Aluno não cadastrado!');
+          return;
+        }
+
+        const horario = new Date().toLocaleString();
+
+        navigator.geolocation.getCurrentPosition(pos => {
+          const localizacao = `Lat: ${pos.coords.latitude.toFixed(5)}, Lon: ${pos.coords.longitude.toFixed(5)}`;
+          presencas.push({
+            aluno_id: aluno.id,
+            nome: aluno.nome,
+            turma: aluno.turma,
+            horario,
+            localizacao
+          });
+          localStorage.setItem('presencas', JSON.stringify(presencas));
+
+          alunoDetectado.innerHTML = `
+            <strong>Presença registrada!</strong><br>
+            Nome: ${aluno.nome}<br>
+            Turma: ${aluno.turma}<br>
+            Curso: ${aluno.curso}<br>
+            Turno: ${aluno.turno}<br>
+            Horário: ${horario}<br>
+            Localização: ${localizacao}
+          `;
+          alunoDetectado.classList.remove('hidden');
+          atualizarPainel();
+        }, () => {
+          alert('Erro ao obter localização.');
+        });
+
+      } catch {
+        alert('QR Code inválido!');
+      }
+    }
+
+    function abrirRecuperarQRCode() {
+  document.getElementById('recuperarQRCode').classList.remove('hidden');
+}
+
+function buscarQRCodePorCPF() {
+  const cpf = document.getElementById('cpfBusca').value.trim();
+  const aluno = alunos.find(a => a.cpf === cpf);
+
+  if (!aluno) {
+    alert('CPF não encontrado. Verifique se está correto.');
+    return;
+  }
+
+  const dadosQr = JSON.stringify(aluno);
+  const qr = new QRious({ value: dadosQr, size: 200 });
+
+  qrcodeDiv.innerHTML = '';
+  qrcodeDiv.appendChild(qr.image);
+  qrcodeDiv.classList.remove('hidden');
+
+  downloadLink.href = qr.toDataURL('image/png');
+  downloadLink.style.display = 'inline-block';
+}
+
+    function iniciarLeituraQRCode() {
+      if (html5QrCode) return;
+
+      html5QrCode = new Html5Qrcode("reader");
+      Html5Qrcode.getCameras().then(cameras => {
+        if (cameras.length) {
+          html5QrCode.start(
+            cameras[0].id,
+            { fps: 10, qrbox: 250 },
+            (decodedText) => {
+              html5QrCode.stop();
+              registrarPresenca(decodedText);
+              setTimeout(() => {
+                html5QrCode.start(cameras[0].id, { fps: 10, qrbox: 250 }, registrarPresenca);
+              }, 3000);
+            }
+          );
+        }
+      });
+    }
+
+    function pararLeituraQRCode() {
+      if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+          html5QrCode.clear();
+          html5QrCode = null;
+        });
+      }
+    }
+
+    document.getElementById('btnLogin').addEventListener('click', () => {
+      const login = document.getElementById('login').value.trim();
+      const senha = document.getElementById('senha').value.trim();
+
+      if (login === 'professor' && senha === '1234') {
+        painel.classList.remove('hidden');
+        atualizarPainel();
+      } else {
+        alert('Login ou senha inválidos.');
+      }
+    });
+
+    filtroTurma.addEventListener('change', atualizarPainel);
+
+    function atualizarPainel() {
+      const turma = filtroTurma.value;
+      let filtradas = presencas;
+
+      if (turma) {
+        filtradas = presencas.filter(p => p.turma === turma);
+      }
+
+      if (filtradas.length === 0) {
+        listaPresencas.innerHTML = '<em>Nenhuma presença registrada.</em>';
+        return;
+      }
+
+      listaPresencas.innerHTML = '<strong>Presenças:</strong><br><br>' +
+        filtradas.map(p =>
+          `${p.nome} - Turma ${p.turma}<br>${p.horario}<br>${p.localizacao}`
+        ).join('<br><br>');
+    }
+  </script>
+</body>
+</html>
