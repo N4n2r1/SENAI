@@ -141,7 +141,14 @@
           </select>
         </label>
         <label>Curso:<input type="text" id="curso" required /></label>
-        <label>Turno:<input type="text" id="turno" required /></label>
+        <label>Turno:
+  <select id="turno" required>
+    <option value="">Selecione o turno</option>
+    <option value="manhã">Manhã</option>
+    <option value="tarde">Tarde</option>
+    <option value="noite">Noite</option>
+  </select>
+</label>
         <button type="submit">Gerar QR Code</button>
         <button type="button" onclick="abrirRecuperarQRCode()">Já tenho cadastro</button>
         <div id="recuperarQRCode" class="hidden">
